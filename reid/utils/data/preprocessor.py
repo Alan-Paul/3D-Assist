@@ -65,3 +65,64 @@ class UnsupervisedCamStylePreprocessor(object):
             img = self.transform(img)
         return img, fname, pid, index
 
+class ModifiedTargetPreprocessor(object):
+    def __init__(self, dataset, root=None, num_cam=6, transform=None):
+        super(ModifiedTargetPreprocessor, self).__init__()
+        self.dataset = dataset
+        self.root = root
+        self.transform = transform
+        self.num_cam = num_cam
+        # self.camstyle_root = camstyle_root
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, indices):
+        if isinstance(indices, (tuple, list)):
+            return [self._get_single_item(index) for index in indices]
+        return self._get_single_item(indices)
+
+    def _get_single_item(self, index):
+        fname, pid, camid = self.dataset[index]
+        # sel_cam = torch.randperm(self.num_cam)[0]
+        # if sel_cam == camid:
+        fpath = osp.join(self.root, fname)
+        img = Image.open(fpath).convert('RGB')
+        # else:
+        #     if 'msmt' in self.root:
+        #         fname = fname[:-4] + '_fake_' + str(sel_cam.numpy() + 1) + '.jpg'
+        #     else:
+        #         fname = fname[:-4] + '_fake_' + str(camid + 1) + 'to' + str(sel_cam.numpy() + 1) + '.jpg'
+        #     fpath = osp.join(self.camstyle_root, fname)
+        #     img = Image.open(fpath).convert('RGB')
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, fname, pid, index
+
+class PersonX_Preprocessor(object):
+    def __init__(self, dataset,transform=None):
+        super(PersonX_Preprocessor, self).__init__()
+        self.dataset = dataset
+        # self.root = root
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, indices):
+        if isinstance(indices, (tuple, list)):
+            return [self._get_single_item(index) for index in indices]
+        return self._get_single_item(indices)
+
+    def _get_single_item(self, index):
+        # fname, pid, ori_path, nb_path, cam
+        fname, pid, ori_path, nb_path, camid = self.dataset[index]
+        fpath = ori_path
+        fname = ori_path
+        # if self.root is not None:
+        #     fpath = osp.join(self.root, fname)
+        img = Image.open(fpath).convert('RGB')
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, fname, pid, camid
+

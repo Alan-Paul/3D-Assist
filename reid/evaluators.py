@@ -21,15 +21,16 @@ import visdom
 
 def extract_cnn_feature(model, inputs, output_feature=None):
     model.eval()
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     inputs = to_torch(inputs)
-    inputs = inputs.to(device)
+    # inputs = inputs.to(device)
+    inputs = inputs.cuda()
     outputs = model(inputs, output_feature)
     outputs = outputs.data.cpu()
     return outputs
 
 
-def extract_features(model, data_loader, print_freq=1, output_feature=None):
+def extract_features(model, data_loader, print_freq, output_feature=None):
     model.eval()
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -126,7 +127,7 @@ class Evaluator(object):
         self.model = model
 
     def evaluate(self, query_loader, gallery_loader, query, gallery, output_feature=None):
-        query_features, _ = extract_features(self.model, query_loader, 1, output_feature)
-        gallery_features, _ = extract_features(self.model, gallery_loader, 1, output_feature)
+        query_features, _ = extract_features(self.model, query_loader, 20, output_feature)
+        gallery_features, _ = extract_features(self.model, gallery_loader, 20, output_feature)
         distmat = pairwise_distance(query_features, gallery_features, query, gallery)
         return evaluate_all(distmat, query=query, gallery=gallery)

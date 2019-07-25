@@ -16,13 +16,15 @@ import torch.nn.functional as F
 class Trainer(object):
     def __init__(self, model, model_inv, lmd=0.3):
         super(Trainer, self).__init__()
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        # self.device = device
         self.model = model
         self.model_inv = model_inv
-        self.pid_criterion = torch.nn.CrossEntropyLoss().to(self.device)
+        # self.pid_criterion = torch.nn.CrossEntropyLoss().to(device)
+        self.pid_criterion = torch.nn.CrossEntropyLoss().cuda()
         self.lmd = lmd
 
-    def train(self, epoch, data_loader, target_train_loader, optimizer, print_freq=1):
+    def train(self, epoch, data_loader, target_train_loader, optimizer, print_freq=20):
         self.set_model_train()
 
         batch_time = AverageMeter()
@@ -46,6 +48,7 @@ class Trainer(object):
             try:
                 inputs_target = next(target_iter)
             except:
+                # break
                 target_iter = iter(target_train_loader)
                 inputs_target = next(target_iter)
             inputs_target, index_target = self._parse_tgt_data(inputs_target)
@@ -91,19 +94,20 @@ class Trainer(object):
 
     def _parse_data(self, inputs):
         imgs, _, pids, _ = inputs
-        inputs = imgs.to(self.device)
-        pids = pids.to(self.device)
+        # inputs = imgs.to(self.device)
+        inputs = imgs.cuda()
+        pids = pids.cuda()
+        # pids = pids.to(self.device)
         return inputs, pids
 
     def _parse_tgt_data(self, inputs_target):
         inputs, _, _, index = inputs_target
-        inputs = inputs.to(self.device)
-        index = index.to(self.device)
+        inputs = inputs.cuda()
+        index = index.cuda()
         return inputs, index
 
     def set_model_train(self):
         self.model.train()
-
         # Fix first BN
         fixed_bns = []
         for idx, (name, module) in enumerate(self.model.module.named_modules()):

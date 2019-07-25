@@ -32,7 +32,7 @@ class ExemplarMemory(Function):
 class InvNet(nn.Module):
     def __init__(self, num_features, num_classes, beta=0.05, knn=6, alpha=0.01):
         super(InvNet, self).__init__()
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.num_features = num_features
         self.num_classes = num_classes
         self.alpha = alpha  # Memory update rate
@@ -68,9 +68,9 @@ class InvNet(nn.Module):
         # Sort
         _, index_sorted = torch.sort(inputs, dim=1, descending=True)
 
-        ones_mat = torch.ones(targets.size(0), k).to(self.device)
+        ones_mat = torch.ones(targets.size(0), k).cuda()
         targets = torch.unsqueeze(targets, 1)
-        targets_onehot = torch.zeros(inputs.size()).to(self.device)
+        targets_onehot = torch.zeros(inputs.size()).cuda()
 
         weights = F.softmax(ones_mat, dim=1)
         targets_onehot.scatter_(1, index_sorted[:, 0:k], ones_mat * weights)
